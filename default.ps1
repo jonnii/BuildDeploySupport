@@ -11,5 +11,6 @@ task Clean {
 
 task BuildPackage -depends Clean {
 	mkdir build
-	.\tools\nuget.exe pack ".\package\package.nuspec" -outputdirectory ".\build"
+	$version = gc ./Version
+	.\tools\nuget.exe pack ".\package\package.nuspec" -outputdirectory ".\build" -version $version
 }
