@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>BuildDeploySupport</id>
+    <version>1.0.0.0</version>
+    <authors>Jonathan Goldman</authors>
+    <description>deploy you a build support</description>
+    <language>en-US</language>
+  </metadata>
+  <files>
+  	<file src="tools\init.ps1" target="tools\init.ps1"/>
+    <file src="tools\deploy\*.ps1" target="tools\deploy"/>
+  </files>
+</package>
