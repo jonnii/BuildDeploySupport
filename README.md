@@ -20,3 +20,12 @@ How do I use it?
     	SetWindowsAuthentication $true
     	SetAnonymousAuthentication $false	
     }
+
+    . .\DeployService.ps1
+
+    InstallService 'servicename' {
+        # first time service install
+        invoke-expression 'your.exe install'
+    } {
+        # subsequent service configure
+    }
