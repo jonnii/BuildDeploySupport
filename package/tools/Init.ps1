@@ -1,11 +1,10 @@
 param($installPath, $toolsPath, $package)
 
-# find out where to put the files, we're going to assume that the 
-# solution file is in a ./src directory and we want to put
-# everything in a ./build directory at the same level.
+# find out where to put the files, we're going to create a deploy directory
+# at the same level as the solution.
 
-$rootDir = (Get-Item $installPath).parent.parent.parent.fullname
-$deployTarget = "$rootDir\deploy\support\"
+$rootDir = (Get-Item $installPath).parent.parent.fullname
+$deployTarget = "$rootDir\Deploy\Support\"
 
 # create our deploy support directory if it doesn't exist yet
 

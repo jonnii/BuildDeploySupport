@@ -1,17 +1,26 @@
 BuildDeploySupport
 ==================
 
-BuildDeploySupport is a collection of useful build scripts that you can use in your own project.
+BuildDeploySupport is a collection of useful build scripts that you can use in your own project. When
+you install the package it will create a ./Deploy/Support directory at the same level as your
+solution and create a solution folder in your project so you can browse the scripts.
+
+You can then use the scripts to simplify your deployment!
 
 Please note that this is a work in progress. 
 
 How do I get it?
 ----------------
-
+    
+    # to install
 	install-package BuildDeploySupport
 
+    # to upgrade
+    update-package BuildDeploySupport 
+
 How do I use it?
-    
+----------------
+
     . .\DeployWeb.ps1
 
     InstallAppPool 'my-app-pool' 'v4.0' {
