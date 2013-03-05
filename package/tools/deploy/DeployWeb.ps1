@@ -49,9 +49,9 @@ function InstallAppPool($appPoolName, $appPoolFrameworkVersion, $configure) {
 }
 
 function SetCredentials($username, $password) {
-	Write-Host "  -> Applying app pool credentials $appPoolUsername"
-	Set-ItemProperty $appPool -Name processModel.username -value $appPoolUsername
-	Set-ItemProperty $appPool -Name processModel.password -value $appPoolPassword
+	Write-Host "  -> Applying app pool credentials $username"
+	Set-ItemProperty $appPool -Name processModel.username -value $username
+	Set-ItemProperty $appPool -Name processModel.password -value $password
 	Set-ItemProperty $appPool -Name processModel.identityType -value 3
 }
 
