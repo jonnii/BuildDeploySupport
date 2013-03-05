@@ -31,7 +31,7 @@ function InstallAppPool($appPoolName, $appPoolFrameworkVersion, $configure) {
 	}
 
 	Write-Host " -> Set .NET framework version: $appPoolFrameworkVersion"
-	Set-ItemProperty $$appPool managedRuntimeVersion $appPoolFrameworkVersion
+	Set-ItemProperty 	$appPool managedRuntimeVersion $appPoolFrameworkVersion
 
 	Write-Host " -> Setting app pool properties"
 	Set-ItemProperty    $appPool -name enable32BitAppOnWin64 -Value $TRUE
