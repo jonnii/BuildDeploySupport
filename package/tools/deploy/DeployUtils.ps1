@@ -5,7 +5,7 @@
 # If you want to make changes please fork and contribute to the BuildDeploySupport 
 # project on github, so everyone can take advantage of your changes!
 
-function ReadXmlNode($filename, $xpath){
+function ReadXmlNode($filename, $xpath) {
     $xml = [xml](Get-Content $filename)
 	$node = $xml.SelectNodes($xpath) | select -f 1
     
@@ -16,10 +16,10 @@ function ReadXmlNode($filename, $xpath){
     return $node.innertext
 }
 
-function WriteXmlAttribute($filename, $xpath, $name, $value){
+function WriteXmlAttribute($filename, $xpath, $name, $value) {
 	$xml = [xml](Get-Content $filename)
 			
-	$node = $xml.SelectNodes(xpath) | select -f 1
+	$node = $xml.SelectNodes($xpath) | select -f 1
 	
 	if(!($node)){
         throw "could not find path $path"
