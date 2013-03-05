@@ -12,52 +12,50 @@
 
 Import-Module WebAdministration
 
-function InstallAppPool($appPoolName, $appPoolUsername, $appPoolPassword) {
+function InstallAppPool($appPoolName, $appPoolFrameworkVersion, $configure) {
 	
-	$appPoolFrameworkVersion = "v4.0"
-
 	# announce ourselves, and try to CD to IIS to make sure we have permissions
 	# the web administration module installed correctly
 	Write-Host "Configuring IIS"
 	cd IIS:\
 
 	Write-Host "Configuring AppPool"
-	$appPoolPath = ("IIS:\AppPools\" + $appPoolName)
-	$pool = Get-Item $appPoolPath -ErrorAction SilentlyContinue
-	if (!$pool) {
+	$appPool = ("IIS:\AppPools\" + $appPoolName)
+	$instance = Get-Item $appPool -ErrorAction SilentlyContinue
+	if (!$instance) {
 	    Write-Host " -> !!!App pool does not exist, creating..." 
-	    new-item $appPoolPath
-	    $pool = Get-Item $appPoolPath
+	    new-item $appPool
+	    $instance = Get-Item $appPool
 	} else {
 	    Write-Host " -> App pool already exists" 
 	}
 
 	Write-Host " -> Set .NET framework version: $appPoolFrameworkVersion"
-	Set-ItemProperty $appPoolPath managedRuntimeVersion $appPoolFrameworkVersion
+	Set-ItemProperty $$appPool managedRuntimeVersion $appPoolFrameworkVersion
 
 	Write-Host " -> Setting app pool properties"
-	Set-ItemProperty    $appPoolPath -name enable32BitAppOnWin64 -Value $TRUE
+	Set-ItemProperty    $appPool -name enable32BitAppOnWin64 -Value $TRUE
 
-	Set-ItemProperty    $appPoolPath -Name processModel.loaduserprofile -value $FALSE
-	Set-ItemProperty    $appPoolPath -Name processModel.idleTimeOut -value '20:00:00'
+	Set-ItemProperty    $appPool -Name processModel.loaduserprofile -value $FALSE
+	Set-ItemProperty    $appPool -Name processModel.idleTimeOut -value '20:00:00'
 
-	if ($appPoolUsername -and $appPoolPassword) {
-	    Write-Host "  -> Applying app pool credentials $appPoolUsername"
-	    Set-ItemProperty    $appPoolPath -Name processModel.username -value $appPoolUsername
-	    Set-ItemProperty    $appPoolPath -Name processModel.password -value $appPoolPassword
-	    Set-ItemProperty    $appPoolPath -Name processModel.identityType -value 3
-	} else {
-	    Write-Host "  -> ! Skipping applying app pool credentials, no username/password supplied"
-	}
+	Set-ItemProperty    $appPool -Name recycling.periodicRestart.time -value 0
+	Clear-ItemProperty  $appPool -Name recycling.periodicRestart.schedule
+	Set-ItemProperty    $appPool -Name recycling.periodicRestart.schedule -Value @{value="01:00:00"}
 
-	Set-ItemProperty    $appPoolPath -Name recycling.periodicRestart.time -value 0
-	Clear-ItemProperty  $appPoolPath -Name recycling.periodicRestart.schedule
-	Set-ItemProperty    $appPoolPath -Name recycling.periodicRestart.schedule -Value @{value="01:00:00"}
+	&$configure
 
-	write-Host "Successfully configured App Pool"
+	Write-Host "Successfully configured App Pool"
 }
 
-function InstallWebSite($webSiteName, $appPoolName, $subdomain, $domain) {
+function SetCredentials($username, $password) {
+	Write-Host "  -> Applying app pool credentials $appPoolUsername"
+	Set-ItemProperty $appPool -Name processModel.username -value $appPoolUsername
+	Set-ItemProperty $appPool -Name processModel.password -value $appPoolPassword
+	Set-ItemProperty $appPool -Name processModel.identityType -value 3
+}
+
+function InstallWebSite($webSiteName, $appPoolName, $url, $configure) {
 	
 	# announce ourselves, and try to CD to IIS to make sure we have permissions
 	# the web administration module installed correctly
@@ -71,8 +69,8 @@ function InstallWebSite($webSiteName, $appPoolName, $subdomain, $domain) {
 	
 	# always create an http and https binding
 	$bindings = @(
-    	@{protocol="http";bindingInformation="*:80:$subdomain.$domain"},
-    	@{protocol="https";bindingInformation="*:443:$subdomain.$domain"})
+    	@{protocol="http";bindingInformation="*:80:$url"},
+    	@{protocol="https";bindingInformation="*:443:$url"})
 
    	# if the site doesn't exist we should create it
 	$site = Get-Item $sitePath -ErrorAction SilentlyContinue
@@ -91,15 +89,23 @@ function InstallWebSite($webSiteName, $appPoolName, $subdomain, $domain) {
 	    Write-Host " -> Site already exists..."
 	}
 
-	Write-Host " -> Configure App Pool"
-	Set-ItemProperty $sitePath -name applicationPool -value $appPoolName
-
 	Write-Host " -> Configuring Bindings"
 	Set-ItemProperty $sitePath -name bindings -value $bindings
 
-	Write-Host " -> Configure Authentication"
-	Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/anonymousAuthentication -name enabled -value false -location $site.name
-	Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/windowsAuthentication -name enabled -value true -location $site.name
+	Write-Host " -> Configure App Pool"
+	Set-ItemProperty $sitePath -name applicationPool -value $appPoolName
 
+	&$configure
+	
 	Write-Host "Successfully configured WebSite"
+}
+
+function SetWindowsAuthentication($enabled) {
+	Write-Host " -> Windows authentication $enabled"
+	Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/windowsAuthentication -name enabled -value $enabled -location $site.name
+}
+
+function SetAnonymousAuthentication($enabled) {
+	Write-Host " -> Anonymous authentication $enabled"
+	Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/anonymousAuthentication -name enabled -value $enabled -location $site.name
 }
