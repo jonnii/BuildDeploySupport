@@ -23,11 +23,32 @@ How do I use it?
 
     . .\DeployWeb.ps1
 
+    # install your app pool
     InstallAppPool 'my-app-pool' -configure {
         SetCredentials 'username' 'password'
     }
 
+    # install your website
     InstallWebSite $OctopusWebSiteName 'my-app-pool' 'www.yourdomain.com' {
     	SetWindowsAuthentication $true
     	SetAnonymousAuthentication $false	
     }
+
+    . .\DeployService.ps1
+
+    # install a topshelf service
+    InstallTopshelfService `
+        $OctopusOriginalPackageDirectoryPath `
+        $OctopusEnvironmentName `
+        $OctopusPackageVersion `
+        'startup.exe' `
+        'Billion Dollar Idea'
+
+    # install another service
+    InstallService $serviceName `
+        -install {
+            # install my service
+        } `
+        -configure {
+            # configure my service
+        }

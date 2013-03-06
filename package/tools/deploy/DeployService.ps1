@@ -34,10 +34,10 @@ function InstallService() {
 function InstallTopshelfService() {
     param (
     	[Parameter(Mandatory=$true)] [string] $path,
-    	[Parameter(Mandatory=$true)] [string] $executable,
-    	[Parameter(Mandatory=$true)] [string] $name,
     	[Parameter(Mandatory=$true)] [string] $environment,
-    	[Parameter(Mandatory=$true)] [string] $version
+    	[Parameter(Mandatory=$true)] [string] $version,
+    	[Parameter(Mandatory=$true)] [string] $executable,
+    	[Parameter(Mandatory=$true)] [string] $name
     )
 
     # service name is the name of the service plus the environment, seperated by a $
