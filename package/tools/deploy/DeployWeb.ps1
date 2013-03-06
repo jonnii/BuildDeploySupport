@@ -12,8 +12,15 @@
 
 Import-Module WebAdministration
 
-function InstallAppPool($appPoolName, $appPoolFrameworkVersion, $configure) {
-	
+function InstallAppPool() {
+	param(
+		[Parameter(Mandatory=$true)]
+		[string]		$appPoolName, 
+
+		[string] 		$appPoolFrameworkVersion = 'v4.0', 
+		[scriptblock] 	$configure
+	)
+
 	# announce ourselves, and try to CD to IIS to make sure we have permissions
 	# the web administration module installed correctly
 	Write-Host "Configuring IIS"
@@ -48,7 +55,12 @@ function InstallAppPool($appPoolName, $appPoolFrameworkVersion, $configure) {
 	Write-Host "Successfully configured App Pool"
 }
 
-function SetCredentials($username, $password) {
+function SetCredentials() {
+	param(
+		[Parameter(Mandatory=$true)] [string] $username,
+		[Parameter(Mandatory=$true)] [string] $password,
+	)
+
 	Write-Host "  -> Applying app pool credentials $username"
 	Set-ItemProperty $appPool -Name processModel.username -value $username
 	Set-ItemProperty $appPool -Name processModel.password -value $password
