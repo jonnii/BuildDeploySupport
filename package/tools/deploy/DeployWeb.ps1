@@ -1,15 +1,3 @@
-###################################################
-# DO NOT MODIFY THIS FILE, IT WILL BE OVERWRITTEN #
-###################################################
-
-# If you want to make changes please fork and contribute to the BuildDeploySupport 
-# project on github, so everyone can take advantage of your changes!
-
-# description
-# -----------
-# installs an app pool for sensible default settings.
-# credentials are optional.
-
 Import-Module WebAdministration
 
 function InstallAppPool() {

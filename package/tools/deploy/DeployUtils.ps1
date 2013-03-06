@@ -1,10 +1,3 @@
-###################################################
-# DO NOT MODIFY THIS FILE, IT WILL BE OVERWRITTEN #
-###################################################
-
-# If you want to make changes please fork and contribute to the BuildDeploySupport 
-# project on github, so everyone can take advantage of your changes!
-
 function ReadXmlNode($filename, $xpath) {
     $xml = [xml](Get-Content $filename)
 	$node = $xml.SelectNodes($xpath) | select -f 1
