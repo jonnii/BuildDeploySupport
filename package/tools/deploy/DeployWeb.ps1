@@ -13,7 +13,7 @@
 Import-Module WebAdministration
 
 function InstallAppPool() {
-	param(
+	param (
 		[Parameter(Mandatory=$true)]
 		[string]		$appPoolName, 
 
@@ -58,7 +58,7 @@ function InstallAppPool() {
 }
 
 function SetCredentials() {
-	param(
+	param (
 		[Parameter(Mandatory=$true)] [string] $username,
 		[Parameter(Mandatory=$true)] [string] $password
 	)
@@ -70,7 +70,7 @@ function SetCredentials() {
 }
 
 function InstallWebSite() {
-	param(
+	param (
 		[Parameter(Mandatory=$true)] [string] $webSiteName, 
 		[Parameter(Mandatory=$true)] [string] $appPoolName, 
 		[Parameter(Mandatory=$true)] [string] $url,
@@ -123,7 +123,7 @@ function InstallWebSite() {
 }
 
 function SetWindowsAuthentication() {
-	param(
+	param (
 		[Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
 	)
 
@@ -132,7 +132,7 @@ function SetWindowsAuthentication() {
 }
 
 function SetAnonymousAuthentication() {
-	param(
+	param (
 		[Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
 	)
 
