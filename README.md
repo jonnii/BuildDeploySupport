@@ -23,7 +23,7 @@ How do I use it?
 
     . .\DeployWeb.ps1
 
-    InstallAppPool 'my-app-pool' 'v4.0' {
+    InstallAppPool 'my-app-pool' -configure {
         SetCredentials 'username' 'password'
     }
 

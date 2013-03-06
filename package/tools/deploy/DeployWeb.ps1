@@ -50,7 +50,9 @@ function InstallAppPool() {
 	Clear-ItemProperty  $appPool -Name recycling.periodicRestart.schedule
 	Set-ItemProperty    $appPool -Name recycling.periodicRestart.schedule -Value @{value="01:00:00"}
 
-	&$configure
+	if ($configure) {
+		&$configure
+	}
 
 	Write-Host "Successfully configured App Pool"
 }
@@ -58,7 +60,7 @@ function InstallAppPool() {
 function SetCredentials() {
 	param(
 		[Parameter(Mandatory=$true)] [string] $username,
-		[Parameter(Mandatory=$true)] [string] $password,
+		[Parameter(Mandatory=$true)] [string] $password
 	)
 
 	Write-Host "  -> Applying app pool credentials $username"
@@ -67,8 +69,14 @@ function SetCredentials() {
 	Set-ItemProperty $appPool -Name processModel.identityType -value 3
 }
 
-function InstallWebSite($webSiteName, $appPoolName, $url, $configure) {
-	
+function InstallWebSite() {
+	param(
+		[Parameter(Mandatory=$true)] [string] $webSiteName, 
+		[Parameter(Mandatory=$true)] [string] $appPoolName, 
+		[Parameter(Mandatory=$true)] [string] $url,
+		$configure
+	)
+
 	# announce ourselves, and try to CD to IIS to make sure we have permissions
 	# the web administration module installed correctly
 	
@@ -107,17 +115,27 @@ function InstallWebSite($webSiteName, $appPoolName, $url, $configure) {
 	Write-Host " -> Configure App Pool"
 	Set-ItemProperty $sitePath -name applicationPool -value $appPoolName
 
-	&$configure
+	if ($configure) {
+		&$configure
+	}
 	
 	Write-Host "Successfully configured WebSite"
 }
 
-function SetWindowsAuthentication($enabled) {
+function SetWindowsAuthentication() {
+	param(
+		[Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
+	)
+
 	Write-Host " -> Windows authentication $enabled"
 	Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/windowsAuthentication -name enabled -value $enabled -location $site.name
 }
 
-function SetAnonymousAuthentication($enabled) {
+function SetAnonymousAuthentication() {
+	param(
+		[Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
+	)
+
 	Write-Host " -> Anonymous authentication $enabled"
 	Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/anonymousAuthentication -name enabled -value $enabled -location $site.name
 }
