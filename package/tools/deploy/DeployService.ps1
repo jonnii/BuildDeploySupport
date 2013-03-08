@@ -39,7 +39,9 @@ function InstallTopshelfService() {
 	$serviceName = "$name$" + $environment
 
 	function InitialInstall() {
-		iex "& '$path\$executable' install $commandLineArguments"
+		$command = "'$path\$executable' install $commandLineArguments"		
+		Write-Host "Executing: $command"
+		iex "& $command"
 	}
 
 	function UpdateServiceProperties() {
@@ -49,6 +51,10 @@ function InstallTopshelfService() {
 		$registryPath = "HKLM:\System\CurrentControlSet\services\$name`$$environment\"
 		$serviceDescription = "$name $environment / $version"
 		$servicePath = "`"$path\$executable`" -instance:$environment -displayname `"$name (Instance: $environment)`" -servicename:$name"
+
+		Write-Host "Updating path: $registryPath"
+		Write-Host " -> Description: $serviceDescription"
+		Write-Host " -> ImagePath: $servicePath"
 
 		Set-ItemProperty -path $registryPath -name Description -value "$serviceDescription"
 		Set-ItemProperty -path $registryPath -name ImagePath -value "$servicePath"
