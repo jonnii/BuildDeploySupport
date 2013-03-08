@@ -49,7 +49,7 @@ function InstallTopshelfService() {
     # e.g. Service$Production
 	
 	function InitialInstall() {
-		$command = "& '$path\$executable' install -servicename:$name`$$environment $commandLineArguments"
+		$command = "& '$path\$executable' install -servicename:$name -instance:$environment $commandLineArguments"
 		Write-Host "Executing: $command"
 		iex $command
 	}
