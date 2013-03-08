@@ -34,6 +34,14 @@ function InstallTopshelfService() {
     	[string] $commandLineArguments
     )
 
+    write-host "Installing Topshelf Service"
+    write-host " -> Path: $path"
+    write-host " -> Environment: $environment"
+    write-host " -> Version: $version"
+    write-host " -> Executable: $executable"
+    write-host " -> Name: $name"
+    write-host " -> CommandLineArguments: $commandLineArguments"
+
     # sanitize the environment name by removing spaces
     $environment = $environment.replace(' ','-')
 
