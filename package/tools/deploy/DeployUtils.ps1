@@ -1,23 +1,35 @@
-function ReadXmlNode($filename, $xpath) {
-    $xml = [xml](Get-Content $filename)
-	$node = $xml.SelectNodes($xpath) | select -f 1
+function ReadXmlNode() {
+  param (
+    [Parameter(Mandatory=$true)] [string] $filename,
+    [Parameter(Mandatory=$true)] [string] $xpath
+  )
+
+  $xml = [xml](Get-Content $filename)
+  $node = $xml.SelectNodes($xpath) | select -f 1
     
-    if(!($node)){
-        throw "could not find path $path"
-    }
+  if(!($node)){
+    throw "could not find path $path"
+  }
     
-    return $node.innertext
+  return $node.innertext
 }
 
-function WriteXmlAttribute($filename, $xpath, $name, $value) {
-	$xml = [xml](Get-Content $filename)
-			
-	$node = $xml.SelectNodes($xpath) | select -f 1
-	
-	if(!($node)){
-        throw "could not find path $path"
-    }
+function WriteXmlAttribute() {
+  param (
+    [Parameter(Mandatory=$true)] [string] $filename, 
+    [Parameter(Mandatory=$true)] [string] $xpath, 
+    [Parameter(Mandatory=$true)] [string] $name, 
+    [Parameter(Mandatory=$true)] [string] $value
+  )
 
-	$node.SetAttribute($name, $value)
-	$xml.save($filename)
+  $xml = [xml](Get-Content $filename)
+      
+  $node = $xml.SelectNodes($xpath) | select -f 1
+  
+  if(!($node)){
+    throw "could not find path $path"
+  }
+
+  $node.SetAttribute($name, $value)
+  $xml.save($filename)
 }
