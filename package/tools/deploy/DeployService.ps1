@@ -30,7 +30,8 @@ function InstallTopshelfService() {
     	[Parameter(Mandatory=$true)] [string] $environment,
     	[Parameter(Mandatory=$true)] [string] $version,
     	[Parameter(Mandatory=$true)] [string] $executable,
-    	[Parameter(Mandatory=$true)] [string] $name
+    	[Parameter(Mandatory=$true)] [string] $name,
+    	[string] $commandLineArguments
     )
 
     # service name is the name of the service plus the environment, seperated by a $
@@ -38,7 +39,7 @@ function InstallTopshelfService() {
 	$serviceName = "$name$" + $environment
 
 	function InitialInstall() {
-		iex "& '$path\$executable' install --environment=$environment"
+		iex "& '$path\$executable' install $commandLineArguments"
 	}
 
 	function UpdateServiceProperties() {
