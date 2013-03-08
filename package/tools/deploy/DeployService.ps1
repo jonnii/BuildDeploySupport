@@ -38,7 +38,7 @@ function InstallTopshelfService() {
 	$serviceName = "$name$" + $environment
 
 	function InitialInstall() {
-		iex "$path\$executable install --environment=$environment"
+		iex "& '$path\$executable' install --environment=$environment"
 	}
 
 	function UpdateServiceProperties() {
