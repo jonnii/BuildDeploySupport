@@ -47,12 +47,11 @@ function InstallTopshelfService() {
 
     # service name is the name of the service plus the environment, seperated by a $
     # e.g. Service$Production
-	$serviceName = "$name$" + $environment
-
+	
 	function InitialInstall() {
-		$command = "'$path\$executable' install -servicename:$serviceName $commandLineArguments"
+		$command = "& '$path\$executable' install -servicename:$name`$$environment $commandLineArguments"
 		Write-Host "Executing: $command"
-		iex "& $command"
+		iex $command
 	}
 
 	function UpdateServiceProperties() {
@@ -61,7 +60,7 @@ function InstallTopshelfService() {
 
 		$registryPath = "HKLM:\System\CurrentControlSet\services\$name`$$environment\"
 		$serviceDescription = "$name $environment / $version"
-		$servicePath = "`"$path\$executable`" -instance:$environment -displayname `"$name (Instance: $environment)`" -servicename:$name"
+		$servicePath = "`"$path\$executable`" -instance `"$environment`" -displayname `"$name (Instance: $environment)`" -servicename `"$name`""
 
 		Write-Host "Updating path: $registryPath"
 		Write-Host " -> Description: $serviceDescription"
@@ -71,7 +70,7 @@ function InstallTopshelfService() {
 		Set-ItemProperty -path $registryPath -name ImagePath -value "$servicePath"
 	}
 
-	InstallService $serviceName `
+	InstallService "$name`$$environment" `
 		-install ${function:InitialInstall} `
 		-configure ${function:UpdateServiceProperties}
 }
