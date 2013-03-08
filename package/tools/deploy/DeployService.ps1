@@ -43,14 +43,14 @@ function InstallTopshelfService() {
     write-host " -> CommandLineArguments: $commandLineArguments"
 
     # sanitize the environment name by removing spaces
-    $environment = $environment.replace(' ','-')
+    $environment = $environment.replace(' ','')
 
     # service name is the name of the service plus the environment, seperated by a $
     # e.g. Service$Production
 	$serviceName = "$name$" + $environment
 
 	function InitialInstall() {
-		$command = "'$path\$executable' install $commandLineArguments"		
+		$command = "'$path\$executable' install -servicename:$serviceName $commandLineArguments"
 		Write-Host "Executing: $command"
 		iex "& $command"
 	}
