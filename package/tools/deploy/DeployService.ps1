@@ -34,6 +34,9 @@ function InstallTopshelfService() {
     	[string] $commandLineArguments
     )
 
+    # sanitize the environment name by removing spaces
+    $environment = $environment.replace(' ','-')
+
     # service name is the name of the service plus the environment, seperated by a $
     # e.g. Service$Production
 	$serviceName = "$name$" + $environment
