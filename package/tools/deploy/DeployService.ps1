@@ -1,6 +1,6 @@
 function InstallService() {
   param (
-    [Parameter(Mandatory=$true)] [string]     $serviceName, 
+    [Parameter(Mandatory=$true)] [string]       $serviceName, 
     [Parameter(Mandatory=$true)] [scriptblock]  $install, 
     [Parameter(Mandatory=$true)] [scriptblock]  $configure
   )
