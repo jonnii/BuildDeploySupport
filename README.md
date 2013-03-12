@@ -54,7 +54,6 @@ How do I use it?
         }
 
     # prepare a click once installer from a directory
-
     PrepareClickOnce `
         '..\installers' `                   # output directory for the package
         '1.2.3.4' `                         # version of the installer
