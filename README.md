@@ -52,3 +52,17 @@ How do I use it?
         -configure {
             # configure my service
         }
+
+    # prepare a click once installer from a directory
+
+    PrepareClickOnce `
+        '..\installers' `                   # output directory for the package
+        '1.2.3.4' `                         # version of the installer
+        '..\bin\Release' `                  # directory to clickonce-ify                     
+        'MyApplication.exe' `               # application executable
+        'MyCompanyAwesomeApp' `             # your application identity name
+        'My Awesome Application' `          # the display name for the application
+        'icon.png' `                        # your app icon
+        'my company' `                      # the company publishing
+        'http://mycompany.com/downloads/' ` # the download location for the installer
+        'my-certificate-thumbprint'         # a certificate thumbprint to sign the package with (optional)
