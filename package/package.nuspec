@@ -6,6 +6,10 @@
     <authors>Jonathan Goldman</authors>
     <description>deploy you a build support</description>
     <language>en-US</language>
+    <projectUrl>https://github.com/jonnii/BuildDeploySupport</projectUrl>
+    <licenseUrl>https://github.com/jonnii/BuildDeploySupport/blob/master/LICENSE.txt</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <tags>build deploy octopus powershell iis services clickonce</tags>
   </metadata>
   <files>
   	<file src="tools\init.ps1" target="tools\init.ps1"/>
