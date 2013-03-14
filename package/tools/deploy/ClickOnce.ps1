@@ -10,7 +10,9 @@ function PrepareClickOnce() {
     [Parameter(Mandatory=$true)] [string] $publisher,
     [Parameter(Mandatory=$true)] [string] $providerPath,
     [string] $thumbprint,
-    [string] $assemblyIdentityName
+    [string] $assemblyIdentityName,
+    [string] $processor = 'x86',
+    [string] $magePath = "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\NETFX 4.0 Tools"
   )
 
   Write-Host "Preparing click once"
@@ -25,9 +27,10 @@ function PrepareClickOnce() {
   Write-Host " -> ProviderPath: $providerPath"
   Write-Host " -> Thumbprint: $thumbprint"
   Write-Host " -> Assembly Identity Name: $assemblyIdentityName"
+  Write-Host " -> Processor: $processor"
 
   # Add mage to our path
-  $env:path += ";C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\NETFX 4.0 Tools"
+  $env:path += ";$magePath"
 
   Write-Host "Preparing install directory"
   if (test-path $target) {
@@ -48,7 +51,7 @@ function PrepareClickOnce() {
   write-host 'Creating manifest file'
   $manifestFileName = join-path $targetVersion "$applicationExecutable.exe.manifest"
   mage -New Application `
-     -Processor x86 `
+     -Processor $processor `
      -ToFile $manifestFileName `
      -name $applicationName `
      -Version $version `
@@ -95,7 +98,7 @@ function PrepareClickOnce() {
   $providerUrl = "$providerPath$applicationExecutable.application"
   
   mage -New Deployment `
-    -Processor x86 `
+    -Processor $processor `
     -Install true `
     -Publisher $publisher `
     -ProviderUrl $providerUrl `
