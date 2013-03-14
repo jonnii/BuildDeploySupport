@@ -1,5 +1,5 @@
 # psake
-# Copyright (c) 2010 James Kovacs
+# Copyright (c) 2012 James Kovacs
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -34,6 +34,11 @@ function Invoke-Task
 
     $taskKey = $taskName.ToLower()
 
+    if ($currentContext.aliases.Contains($taskKey)) {
+        $taskName = $currentContext.aliases.$taskKey.Name
+        $taskKey = $taskName.ToLower()
+    }
+
     $currentContext = $psake.context.Peek()
 
     Assert ($currentContext.tasks.Contains($taskKey)) ($msgs.error_task_name_does_not_exist -f $taskName)
@@ -49,7 +54,7 @@ function Invoke-Task
     $precondition_is_valid = & $task.Precondition
 
     if (!$precondition_is_valid) {
-        Write-ColoredOutput ($msgs.precondition_was_false -f $taskName) -foregroundcolor Cyan
+        WriteColoredOutput ($msgs.precondition_was_false -f $taskName) -foregroundcolor Cyan
     } else {
         if ($taskKey -ne 'default') {
 
@@ -75,7 +80,7 @@ function Invoke-Task
                     if ($currentContext.config.taskNameFormat -is [ScriptBlock]) {
                         & $currentContext.config.taskNameFormat $taskName
                     } else {
-                        Write-ColoredOutput ($currentContext.config.taskNameFormat -f $taskName) -foregroundcolor Cyan
+                        WriteColoredOutput ($currentContext.config.taskNameFormat -f $taskName) -foregroundcolor Cyan
                     }
 
                     foreach ($variable in $task.requiredVariables) {
@@ -93,7 +98,7 @@ function Invoke-Task
                 } catch {
                     if ($task.ContinueOnError) {
                         "-"*70
-                        Write-ColoredOutput ($msgs.continue_on_error -f $taskName,$_) -foregroundcolor Yellow
+                        WriteColoredOutput ($msgs.continue_on_error -f $taskName,$_) -foregroundcolor Yellow
                         "-"*70
                         $task.Duration = $stopwatch.Elapsed
                     }  else {
@@ -162,7 +167,8 @@ function Task
         [Parameter(Position=6,Mandatory=0)][switch]$continueOnError = $false,
         [Parameter(Position=7,Mandatory=0)][string[]]$depends = @(),
         [Parameter(Position=8,Mandatory=0)][string[]]$requiredVariables = @(),
-        [Parameter(Position=9,Mandatory=0)][string]$description = $null
+        [Parameter(Position=9,Mandatory=0)][string]$description = $null,
+        [Parameter(Position=10,Mandatory=0)][string]$alias = $null
     )
     if ($name -eq 'default') {
         Assert (!$action) ($msgs.error_default_task_cannot_have_action)
@@ -180,15 +186,25 @@ function Task
         Description = $description
         Duration = [System.TimeSpan]::Zero
         RequiredVariables = $requiredVariables
+        Alias = $alias
     }
 
-    $taskKey = $name.ToLower()
+    $taskKey = $name.ToLower()    
 
     $currentContext = $psake.context.Peek()
 
     Assert (!$currentContext.tasks.ContainsKey($taskKey)) ($msgs.error_duplicate_task_name -f $name) 
 
     $currentContext.tasks.$taskKey = $newTask
+
+    if($alias)
+    {
+        $aliasKey = $alias.ToLower()
+
+        Assert (!$currentContext.aliases.ContainsKey($aliasKey)) ($msgs.error_duplicate_alias_name -f $alias) 
+
+        $currentContext.aliases.$aliasKey = $newTask        
+    }
 }
 
 # .ExternalHelp  psake.psm1-help.xml
@@ -256,7 +272,8 @@ function Invoke-psake {
         [Parameter(Position = 3, Mandatory = 0)][switch] $docs = $false, 
         [Parameter(Position = 4, Mandatory = 0)][hashtable] $parameters = @{}, 
         [Parameter(Position = 5, Mandatory = 0)][hashtable] $properties = @{},
-        [Parameter(Position = 6, Mandatory = 0)][switch] $nologo = $false
+        [Parameter(Position = 6, Mandatory = 0)][alias("init")][scriptblock] $initialization = {},
+        [Parameter(Position = 7, Mandatory = 0)][switch] $nologo = $false
     )
     try {
         if (-not $nologo) {
@@ -286,14 +303,15 @@ function Invoke-psake {
             "originalDirectory" = get-location;
             "originalErrorActionPreference" = $global:ErrorActionPreference;
             "tasks" = @{};
+            "aliases" = @{};
             "properties" = @();
             "includes" = new-object System.Collections.Queue;
-            "config" = Create-ConfigurationForNewContext $buildFile $framework
+            "config" = CreateConfigurationForNewContext $buildFile $framework
         })
 
-        Load-Configuration $psake.build_script_dir
+        LoadConfiguration $psake.build_script_dir
 
-        Load-Modules
+        LoadModules
         
         $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
         
@@ -305,17 +323,17 @@ function Invoke-psake {
         $currentContext = $psake.context.Peek()
 
         if ($framework -ne $frameworkOldValue) {
-            write-coloredoutput $msgs.warning_deprecated_framework_variable -foregroundcolor Yellow
+            writecoloredoutput $msgs.warning_deprecated_framework_variable -foregroundcolor Yellow
             $currentContext.config.framework = $framework
         }
 
         if ($docs) {
-            Write-Documentation
-            Cleanup-Environment
+            WriteDocumentation
+            CleanupEnvironment
             return
         }
 
-        Configure-BuildEnvironment
+        ConfigureBuildEnvironment
 
         while ($currentContext.includes.Count -gt 0) {
             $includeFilename = $currentContext.includes.Dequeue()
@@ -341,6 +359,10 @@ function Invoke-psake {
             }
         }
 
+        # Simple dot sourcing will not work. We have to force the script block into our
+        # module's scope in order to initialize variables properly.
+        . $MyInvocation.MyCommand.Module $initialization
+
         # Execute the list of tasks or the default task
         if ($taskList) {
             foreach ($task in $taskList) {
@@ -352,24 +374,26 @@ function Invoke-psake {
             throw $msgs.error_no_default_task
         }
 
-        Write-ColoredOutput ("`n" + $msgs.build_success + "`n") -foregroundcolor Green
+        WriteColoredOutput ("`n" + $msgs.build_success + "`n") -foregroundcolor Green
 
-        Write-TaskTimeSummary $stopwatch.Elapsed
+        WriteTaskTimeSummary $stopwatch.Elapsed
 
         $psake.build_success = $true
     } catch {
-        $currentConfig = Get-CurrentConfigurationOrDefault
+        $currentConfig = GetCurrentConfigurationOrDefault
         if ($currentConfig.verboseError) {
             $error_message = "{0}: An Error Occurred. See Error Details Below: `n" -f (Get-Date) 
             $error_message += ("-" * 70) + "`n"
-            $error_message += Resolve-Error $_
+            $error_message += "Error: {0}`n" -f (ResolveError $_ -Short)
+            $error_message += ("-" * 70) + "`n"
+            $error_message += ResolveError $_
             $error_message += ("-" * 70) + "`n"
             $error_message += "Script Variables" + "`n"
             $error_message += ("-" * 70) + "`n"
             $error_message += get-variable -scope script | format-table | out-string 
         } else {
             # ($_ | Out-String) gets error messages with source information included. 
-            $error_message = "{0}: An Error Occurred: `n{1}" -f (Get-Date), ($_ | Out-String)
+            $error_message = "Error: {0}: `n{1}" -f (Get-Date), (ResolveError $_ -Short)
         }
 
         $psake.build_success = $false
@@ -381,25 +405,25 @@ function Invoke-psake {
             if ( $inNestedScope ) {
                 throw $_
             } else {
-                Write-ColoredOutput $error_message -foregroundcolor Red
+                WriteColoredOutput $error_message -foregroundcolor Red
             }
 
         }
     } finally {
-        Cleanup-Environment
+        CleanupEnvironment
     }
 }
 
 #-- Private Module Functions --#
-function Write-ColoredOutput {
+function WriteColoredOutput {
     param(
         [string] $message,
         [System.ConsoleColor] $foregroundcolor
     )
 
-    $currentConfig = Get-CurrentConfigurationOrDefault
+    $currentConfig = GetCurrentConfigurationOrDefault
     if ($currentConfig.coloredOutput -eq $true) {
-        if (($Host.UI -ne $null) -and ($Host.UI.RawUI -ne $null)) {
+        if (($Host.UI -ne $null) -and ($Host.UI.RawUI -ne $null) -and ($Host.UI.RawUI.ForegroundColor -ne $null)) {
             $previousColor = $Host.UI.RawUI.ForegroundColor
             $Host.UI.RawUI.ForegroundColor = $foregroundcolor
         }
@@ -412,13 +436,18 @@ function Write-ColoredOutput {
     }
 }
 
-function Load-Modules {
+function LoadModules {
     $currentConfig = $psake.context.peek().config
     if ($currentConfig.modules) {
+
+        $scope = $currentConfig.moduleScope
+
+        $global = [string]::Equals($scope, "global", [StringComparison]::CurrentCultureIgnoreCase)
+        
         $currentConfig.modules | foreach {
             resolve-path $_ | foreach {
                 "Loading module: $_"
-                $module = import-module $_ -passthru
+                $module = import-module $_ -passthru -DisableNameChecking -global:$global
                 if (!$module) {
                     throw ($msgs.error_loading_module -f $_.Name)
                 }
@@ -428,7 +457,7 @@ function Load-Modules {
     }
 }
 
-function Load-Configuration {
+function LoadConfiguration {
     param(
         [string] $configdir = $PSScriptRoot
     )
@@ -437,7 +466,7 @@ function Load-Configuration {
 
     if (test-path $psakeConfigFilePath -pathType Leaf) {
         try {
-            $config = Get-CurrentConfigurationOrDefault
+            $config = GetCurrentConfigurationOrDefault
             . $psakeConfigFilePath
         } catch {
             throw "Error Loading Configuration from psake-config.ps1: " + $_
@@ -445,7 +474,7 @@ function Load-Configuration {
     }
 }
 
-function Get-CurrentConfigurationOrDefault() {
+function GetCurrentConfigurationOrDefault() {
     if ($psake.context.count -gt 0) {
         return $psake.context.peek().config
     } else {
@@ -453,13 +482,13 @@ function Get-CurrentConfigurationOrDefault() {
     }
 }
 
-function Create-ConfigurationForNewContext {
+function CreateConfigurationForNewContext {
     param(
         [string] $buildFile,
         [string] $framework
     )
 
-    $previousConfig = Get-CurrentConfigurationOrDefault
+    $previousConfig = GetCurrentConfigurationOrDefault
 
     $config = new-object psobject -property @{
         buildFileName = $previousConfig.buildFileName;
@@ -467,7 +496,8 @@ function Create-ConfigurationForNewContext {
         taskNameFormat = $previousConfig.taskNameFormat;
         verboseError = $previousConfig.verboseError;
         coloredOutput = $previousConfig.coloredOutput;
-        modules = $previousConfig.modules
+        modules = $previousConfig.modules;
+        moduleScope =  $previousConfig.moduleScope;
     }
 
     if ($framework) {
@@ -481,7 +511,7 @@ function Create-ConfigurationForNewContext {
     return $config
 }
 
-function Configure-BuildEnvironment {
+function ConfigureBuildEnvironment {
     $framework = $psake.context.peek().config.framework
     if ($framework.Length -ne 3 -and $framework.Length -ne 6) {
         throw ($msgs.error_invalid_framework -f $framework)
@@ -522,7 +552,7 @@ function Configure-BuildEnvironment {
             'x64' {
                 $bitness = 'Framework64'
             }
-            $null {
+            { [string]::IsNullOrEmpty($_) } {
                 $ptrSize = [System.IntPtr]::Size
                 switch ($ptrSize) {
                     4 {
@@ -551,7 +581,7 @@ function Configure-BuildEnvironment {
     $global:ErrorActionPreference = "Stop"
 }
 
-function Cleanup-Environment {
+function CleanupEnvironment {
     if ($psake.context.Count -gt 0) {
         $currentContext = $psake.context.Peek()
         $env:path = $currentContext.originalEnvPath
@@ -561,23 +591,95 @@ function Cleanup-Environment {
     }
 }
 
-# borrowed from Jeffrey Snover http://blogs.msdn.com/powershell/archive/2006/12/07/resolve-error.aspx
-function Resolve-Error($ErrorRecord = $Error[0]) {
-    $error_message = "`nErrorRecord:{0}ErrorRecord.InvocationInfo:{1}Exception:{2}"
-    $formatted_errorRecord = $ErrorRecord | format-list * -force | out-string
-    $formatted_invocationInfo = $ErrorRecord.InvocationInfo | format-list * -force | out-string
-    $formatted_exception = ""
-    $Exception = $ErrorRecord.Exception
-    for ($i = 0; $Exception; $i++, ($Exception = $Exception.InnerException)) {
-        $formatted_exception += ("$i" * 70) + "`n"
-        $formatted_exception += $Exception | format-list * -force | out-string
-        $formatted_exception += "`n"
-    }
+function SelectObjectWithDefault
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline=$true)]
+        [PSObject]
+        $InputObject,
+        [string]
+        $Name,
+        $Value
+    )
 
-    return $error_message -f $formatted_errorRecord, $formatted_invocationInfo, $formatted_exception
+    process {
+        if ($_ -eq $null) { $Value }
+        elseif ($_ | Get-Member -Name $Name) {
+          $_.$Name
+        }
+        elseif (($_ -is [Hashtable]) -and ($_.Keys -contains $Name)) {
+          $_.$Name
+        }
+        else { $Value }
+    }
 }
 
-function Write-Documentation {
+# borrowed from Jeffrey Snover http://blogs.msdn.com/powershell/archive/2006/12/07/resolve-error.aspx
+# modified to better handle SQL errors
+function ResolveError
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline=$true)]
+        $ErrorRecord=$Error[0],
+        [Switch]
+        $Short
+    )
+
+    process {
+        if ($_ -eq $null) { $_ = $ErrorRecord }
+        $ex = $_.Exception
+
+        if (-not $Short) {
+            $error_message = "`nErrorRecord:{0}ErrorRecord.InvocationInfo:{1}Exception:`n{2}"
+            $formatted_errorRecord = $_ | format-list * -force | out-string
+            $formatted_invocationInfo = $_.InvocationInfo | format-list * -force | out-string
+            $formatted_exception = ''
+
+            $i = 0
+            while ($ex -ne $null) {
+                $i++
+                $formatted_exception += ("$i" * 70) + "`n" +
+                    ($ex | format-list * -force | out-string) + "`n"
+                $ex = $ex | SelectObjectWithDefault -Name 'InnerException' -Value $null
+            }
+
+            return $error_message -f $formatted_errorRecord, $formatted_invocationInfo, $formatted_exception
+        }
+
+        $lastException = @()
+        while ($ex -ne $null) {
+            $lastMessage = $ex | SelectObjectWithDefault -Name 'Message' -Value ''
+            $lastException += ($lastMessage -replace "`n", '')
+            if ($ex -is [Data.SqlClient.SqlException]) {
+                $lastException += "(Line [$($ex.LineNumber)] " +
+                    "Procedure [$($ex.Procedure)] Class [$($ex.Class)] " +
+                    " Number [$($ex.Number)] State [$($ex.State)] )"
+            }
+            $ex = $ex | SelectObjectWithDefault -Name 'InnerException' -Value $null
+        }
+        $shortException = $lastException -join ' --> '
+
+        $header = $null
+        $current = $_
+        $header = (($_.InvocationInfo |
+            SelectObjectWithDefault -Name 'PositionMessage' -Value '') -replace "`n", ' '),
+            ($_ | SelectObjectWithDefault -Name 'Message' -Value ''),
+            ($_ | SelectObjectWithDefault -Name 'Exception' -Value '') |
+                ? { -not [String]::IsNullOrEmpty($_) } |
+                Select -First 1
+
+        $delimiter = ''
+        if ((-not [String]::IsNullOrEmpty($header)) -and
+            (-not [String]::IsNullOrEmpty($shortException)))
+            { $delimiter = ' [<<==>>] ' }
+
+        return "$($header)$($delimiter)Exception: $($shortException)"
+    }
+}
+
+function WriteDocumentation {
     $currentContext = $psake.context.Peek()
 
     if ($currentContext.tasks.default) {
@@ -594,14 +696,15 @@ function Write-Documentation {
         $task = $currentContext.tasks.$_
         new-object PSObject -property @{
             Name = $task.Name;
+            Alias = $task.Alias;
             Description = $task.Description;
             "Depends On" = $task.DependsOn -join ", "
             Default = if ($defaultTaskDependencies -contains $task.Name) { $true }
         }
-    } | sort 'Name' | format-table -autoSize -property Name,Description,"Depends On",Default
+    } | sort 'Name' | format-list -property Name,Alias,Description,"Depends On",Default
 }
 
-function Write-TaskTimeSummary($invokePsakeDuration) {
+function WriteTaskTimeSummary($invokePsakeDuration) {
     "-" * 70 
     "Build Time Report"
     "-" * 70
@@ -642,6 +745,7 @@ convertfrom-stringdata @'
     error_bad_command = Error executing command {0}.
     error_default_task_cannot_have_action = 'default' task cannot specify an action.
     error_duplicate_task_name = Task {0} has already been defined.
+    error_duplicate_alias_name = Alias {0} has already been defined.
     error_invalid_include_path = Unable to include {0}. File not found.
     error_build_file_not_found = Could not find the build file {0}.
     error_no_default_task = 'default' task required.
@@ -658,12 +762,12 @@ convertfrom-stringdata @'
 import-localizeddata -bindingvariable msgs -erroraction silentlycontinue
 
 $script:psake = @{}
-$psake.version = "4.00" # contains the current version of psake
+$psake.version = "4.2.0" # contains the current version of psake
 $psake.context = new-object system.collections.stack # holds onto the current state of all variables
 $psake.run_by_psake_build_tester = $false # indicates that build is being run by psake-BuildTester
 $psake.config_default = new-object psobject -property @{
     buildFileName = "default.ps1";
-    framework = "3.5";
+    framework = "4.0";
     taskNameFormat = "Executing {0}";
     verboseError = $false;
     coloredOutput = $true;
@@ -674,6 +778,6 @@ $psake.build_success = $false # indicates that the current build was successful
 $psake.build_script_file = $null # contains a System.IO.FileInfo for the current build script
 $psake.build_script_dir = "" # contains a string with fully-qualified path to current build script
 
-Load-Configuration
+LoadConfiguration
 
 export-modulemember -function invoke-psake, invoke-task, task, properties, include, formattaskname, tasksetup, taskteardown, framework, assert, exec -variable psake
