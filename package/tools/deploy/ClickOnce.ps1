@@ -9,7 +9,8 @@ function PrepareClickOnce() {
     [Parameter(Mandatory=$true)] [string] $icon,
     [Parameter(Mandatory=$true)] [string] $publisher,
     [Parameter(Mandatory=$true)] [string] $providerPath,
-    [string] $thumbprint
+    [string] $thumbprint,
+    [string] $assemblyIdentityName
   )
 
   Write-Host "Preparing click once"
@@ -23,6 +24,7 @@ function PrepareClickOnce() {
   Write-Host " -> Publisher: $publisher"
   Write-Host " -> ProviderPath: $providerPath"
   Write-Host " -> Thumbprint: $thumbprint"
+  Write-Host " -> Assembly Identity Name: $assemblyIdentityName"
 
   # Add mage to our path
   $env:path += ";C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\NETFX 4.0 Tools"
@@ -53,9 +55,19 @@ function PrepareClickOnce() {
      -FromDirectory $targetVersion `
      -IconFile $icon
 
-  # write-host ' -> Add file associations to manfest'
-  # $fullPath = resolve-path($manifestFileName)
-  # $doc = [xml](Get-Content -Path $fullPath)
+  $manifestPath = resolve-path($manifestFileName)
+  $doc = [xml](Get-Content -Path $manifestPath)
+
+  # mage uses a default assembly identity name of "ApplicationName.app"
+  # sometimes this can be different from the name visual studio chooses
+  # so we have to reach into the manifest to update it
+
+  if($assemblyIdentityName) {
+    Write-Host "Applying override for  $assemblyIdentityName"
+    $doc.assembly.assemblyIdentity.SetAttribute("name", $assemblyIdentityName)
+    $doc.Save($manifestPath)
+  }
+
   # $association = $doc.CreateElement('fileAssociation')
   # $association.SetAttribute('xmlns','urn:schemas-microsoft-com:clickonce.v1')
   # $association.SetAttribute('extension','.ext')
@@ -63,8 +75,7 @@ function PrepareClickOnce() {
   # $association.SetAttribute('progid','YourApp.Document')
   # $association.SetAttribute('defaultIcon', $icon)
   # $doc.assembly.AppendChild($association) > $null
-  # $doc.Save($fullPath)
-
+  
   if($thumbprint -ne '')
   {
     write-host " -> signing manifest file"
