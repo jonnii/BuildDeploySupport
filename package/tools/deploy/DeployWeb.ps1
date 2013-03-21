@@ -1,6 +1,7 @@
 Import-Module WebAdministration
 
 function Install-AppPool() {
+  [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)]
     [string]    $appPoolName, 
@@ -11,24 +12,24 @@ function Install-AppPool() {
 
   # announce ourselves, and try to CD to IIS to make sure we have permissions
   # the web administration module installed correctly
-  Write-Host "Configuring IIS"
+  Write-Verbose "Configuring IIS"
   cd IIS:\
 
-  Write-Host "Configuring AppPool"
+  Write-Verbose "Configuring AppPool"
   $appPool = ("IIS:\AppPools\" + $appPoolName)
   $instance = Get-Item $appPool -ErrorAction SilentlyContinue
   if (!$instance) {
-      Write-Host " -> !!!App pool does not exist, creating..." 
+      Write-Verbose " -> !!!App pool does not exist, creating..." 
       new-item $appPool
       $instance = Get-Item $appPool
   } else {
-      Write-Host " -> App pool already exists" 
+      Write-Verbose " -> App pool already exists" 
   }
 
-  Write-Host " -> Set .NET framework version: $appPoolFrameworkVersion"
+  Write-Verbose " -> Set .NET framework version: $appPoolFrameworkVersion"
   Set-ItemProperty  $appPool managedRuntimeVersion $appPoolFrameworkVersion
 
-  Write-Host " -> Setting app pool properties"
+  Write-Verbose " -> Setting app pool properties"
   Set-ItemProperty    $appPool -name enable32BitAppOnWin64 -Value $TRUE
 
   Set-ItemProperty    $appPool -Name processModel.loaduserprofile -value $FALSE
@@ -42,22 +43,24 @@ function Install-AppPool() {
     &$configure
   }
 
-  Write-Host "Successfully configured App Pool"
+  Write-Verbose "Successfully configured App Pool"
 }
 
 function Set-Credentials() {
+  [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)] [string] $username,
     [Parameter(Mandatory=$true)] [string] $password
   )
 
-  Write-Host "  -> Applying app pool credentials $username"
+  Write-Verbose "  -> Applying app pool credentials $username"
   Set-ItemProperty $appPool -Name processModel.username -value $username
   Set-ItemProperty $appPool -Name processModel.password -value $password
   Set-ItemProperty $appPool -Name processModel.identityType -value 3
 }
 
 function Install-WebSite() {
+  [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)] [string] $webSiteName, 
     [Parameter(Mandatory=$true)] [string] $appPoolName, 
@@ -68,12 +71,12 @@ function Install-WebSite() {
   # announce ourselves, and try to CD to IIS to make sure we have permissions
   # the web administration module installed correctly
   
-  Write-Host "Configuring IIS"
-  cd IIS:\
+  Write-Verbose "Configuring IIS"
+  Set-Location  IIS:\
 
-  Write-Host "Configuring WebSite"
+  Write-Verbose "Configuring WebSite"
   $sitePath = "IIS:\Sites\$webSiteName"
-  Write-Host $sitePath
+  Write-Verbose $sitePath
   
   # always create an http and https binding
   $bindings = @(
@@ -83,7 +86,7 @@ function Install-WebSite() {
     # if the site doesn't exist we should create it
   $site = Get-Item $sitePath -ErrorAction SilentlyContinue
   if (!$site) { 
-    Write-Host " -> !!! Site does not exist, creating..."
+    Write-Verbose " -> !!! Site does not exist, creating..."
     $id = (dir IIS:\Sites | foreach {$_.id} | sort -Descending | select -first 1) + 1
       
     # we set this to the web root to something
@@ -94,36 +97,38 @@ function Install-WebSite() {
     New-Item $sitePath -bindings $bindings -id $id -physicalPath $webRoot
     $site = Get-Item $sitePath
   } else {
-    Write-Host " -> Site already exists..."
+    Write-Verbose " -> Site already exists..."
   }
 
-  Write-Host " -> Configuring Bindings"
+  Write-Verbose " -> Configuring Bindings"
   Set-ItemProperty $sitePath -name bindings -value $bindings
 
-  Write-Host " -> Configure App Pool"
+  Write-Verbose " -> Configure App Pool"
   Set-ItemProperty $sitePath -name applicationPool -value $appPoolName
 
   if ($configure) {
     &$configure
   }
   
-  Write-Host "Successfully configured WebSite"
+  Write-Verbose "Successfully configured WebSite"
 }
 
 function Set-WindowsAuthentication() {
+  [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
   )
 
-  Write-Host " -> Windows authentication $enabled"
+  Write-Verbose " -> Windows authentication $enabled"
   Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/windowsAuthentication -name enabled -value $enabled -location $site.name
 }
 
 function Set-AnonymousAuthentication() {
+  [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
   )
 
-  Write-Host " -> Anonymous authentication $enabled"
+  Write-Verbose " -> Anonymous authentication $enabled"
   Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/anonymousAuthentication -name enabled -value $enabled -location $site.name
 }
