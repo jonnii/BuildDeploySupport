@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.0.0
+
+  * update all function names to be more idiomatic
+
 ## 0.0.3.10
 
   * [clickonce] ability to override assembly identity name

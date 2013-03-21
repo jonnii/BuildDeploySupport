@@ -24,20 +24,20 @@ How do I use it?
     . .\DeployWeb.ps1
 
     # install your app pool
-    InstallAppPool 'my-app-pool' -configure {
-        SetCredentials 'username' 'password'
+    Install-AppPool 'my-app-pool' -configure {
+        Set-Credentials 'username' 'password'
     }
 
     # install your website
-    InstallWebSite $OctopusWebSiteName 'my-app-pool' 'www.yourdomain.com' {
-    	SetWindowsAuthentication $true
-    	SetAnonymousAuthentication $false	
+    Install-WebSite $OctopusWebSiteName 'my-app-pool' 'www.yourdomain.com' {
+    	Set-WindowsAuthentication $true
+    	Set-AnonymousAuthentication $false	
     }
 
     . .\DeployService.ps1
 
     # install a topshelf service
-    InstallTopshelfService `
+    Install-TopshelfService `
         $OctopusOriginalPackageDirectoryPath `
         $OctopusEnvironmentName `
         $OctopusPackageVersion `
@@ -45,7 +45,7 @@ How do I use it?
         'Billion Dollar Idea'
 
     # install another service
-    InstallService $serviceName `
+    Install-Service $serviceName `
         -install {
             # install my service
         } `
@@ -54,7 +54,7 @@ How do I use it?
         }
 
     # prepare a click once installer from a directory
-    PrepareClickOnce `
+    Prepare-ClickOnce `
         '..\installers' `                   # output directory for the package
         '1.2.3.4' `                         # version of the installer
         '..\bin\Release' `                  # directory to clickonce-ify                     
