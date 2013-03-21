@@ -34,9 +34,9 @@ function Prepare-ClickOnce() {
   $env:path += ";$magePath"
 
   Write-Verbose "Preparing install directory"
-  if (test-path $target) {
+  if (Test-Path $target) {
     Write-Verbose "Cleaning target directory"
-    rm -r -force $target > $null
+    Remove-Item -r -force $target > $null
   }
   mkdir $target > $null
 
@@ -46,8 +46,8 @@ function Prepare-ClickOnce() {
   mkdir $targetVersion
   Write-Verbose "Prepare install directory for version $version"
 
-  cp -r -exclude *.xml "$source\*" $targetVersion
-  rm "$targetVersion\*vshost*"
+  Copy-Item -r -exclude *.xml "$source\*" $targetVersion
+  Remove-Item "$targetVersion\*vshost*"
 
   Write-Verbose 'Creating manifest file'
   $manifestFileName = join-path $targetVersion "$applicationExecutable.exe.manifest"
@@ -91,13 +91,13 @@ function Prepare-ClickOnce() {
   }
 
   # rename all files to .deploy
-  gci -exclude *.manifest -r $targetVersion | where { $_.PSIsContainer -eq $false } | rename-item -newname { $_.name + ".deploy" }
+  Get-ChildItem  -exclude *.manifest -r $targetVersion | where { $_.PSIsContainer -eq $false } | rename-item -newname { $_.name + ".deploy" }
 
   Write-Verbose "creating deployment manifest"
 
-  $applicationFileName = join-path $target "$applicationExecutable.application"
+  $applicationFileName = Join-Path $target "$applicationExecutable.application"
   $providerUrl = "$providerPath$applicationExecutable.application"
-  
+
   mage -New Deployment `
     -Processor $processor `
     -Install true `
