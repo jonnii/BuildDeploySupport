@@ -1,4 +1,5 @@
 function Install-Service() {
+  [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)] [string]       $serviceName, 
     [Parameter(Mandatory=$true)] [scriptblock]  $install, 
@@ -8,19 +9,19 @@ function Install-Service() {
   $service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
 
   if ($service) {
-    write-host "Stopping $serviceName"
-    stop-service $serviceName
+    Write-Verbose "Stopping $serviceName"
+    Stop-Service $serviceName
     
-    write-host " -> Configuring $serviceName"
+    Write-Verbose " -> Configuring $serviceName"
     &$configure
   }
   else {
-    write-host "Installing $serviceName"
+    Write-Verbose "Installing $serviceName"
     &$install
   }
 
-  write-host "Starting $serviceName"
-  start-service $serviceName
+  Write-Verbose "Starting $serviceName"
+  Start-Service $serviceName
 }
 
 function Install-TopshelfService() {
@@ -33,13 +34,13 @@ function Install-TopshelfService() {
     [string] $commandLineArguments
   )
 
-  Write-Host " => Installing Topshelf Service"
-  Write-Host "   -> Path: $path"
-  Write-Host "   -> Environment: $environment"
-  Write-Host "   -> Version: $version"
-  Write-Host "   -> Executable: $executable"
-  Write-Host "   -> Name: $name"
-  Write-Host "   -> CommandLineArguments: $commandLineArguments"
+  Write-Verbose " => Installing Topshelf Service"
+  Write-Verbose "   -> Path: $path"
+  Write-Verbose "   -> Environment: $environment"
+  Write-Verbose "   -> Version: $version"
+  Write-Verbose "   -> Executable: $executable"
+  Write-Verbose "   -> Name: $name"
+  Write-Verbose "   -> CommandLineArguments: $commandLineArguments"
 
   # sanitize the environment name by removing spaces
   $environment = $environment.replace(' ','')
@@ -48,12 +49,15 @@ function Install-TopshelfService() {
   # e.g. Service$Production
   
   function Install-FirstTime() {
+    [CmdletBinding()] param()
+
     $command = "& '$path\$executable' install -servicename:$name -instance:$environment $commandLineArguments"
-    Write-Host " => Executing: $command"
-    iex $command
+    Write-Verbose " => Executing: $command"
+    Invoke-Expression $command
   }
 
   function Update-ServiceProperties() {
+    [CmdletBinding()] param()
     # updates service properties using the registry
     # this could use sc.exe
 
@@ -61,9 +65,9 @@ function Install-TopshelfService() {
     $serviceDescription = "$name $environment / $version"
     $servicePath = "`"$path\$executable`" -instance `"$environment`" -displayname `"$name (Instance: $environment)`" -servicename `"$name`""
 
-    Write-Host " => Updating path: $registryPath"
-    Write-Host "   -> Description: $serviceDescription"
-    Write-Host "   -> ImagePath: $servicePath"
+    Write-Verbose " => Updating path: $registryPath"
+    Write-Verbose "   -> Description: $serviceDescription"
+    Write-Verbose "   -> ImagePath: $servicePath"
 
     Set-ItemProperty -path $registryPath -name Description -value "$serviceDescription"
     Set-ItemProperty -path $registryPath -name ImagePath -value "$servicePath"
