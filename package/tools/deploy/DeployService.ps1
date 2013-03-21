@@ -1,4 +1,4 @@
-function InstallService() {
+function Install-Service() {
   param (
     [Parameter(Mandatory=$true)] [string]       $serviceName, 
     [Parameter(Mandatory=$true)] [scriptblock]  $install, 
@@ -23,7 +23,7 @@ function InstallService() {
   start-service $serviceName
 }
 
-function InstallTopshelfService() {
+function Install-TopshelfService() {
   param (
     [Parameter(Mandatory=$true)] [string] $path,
     [Parameter(Mandatory=$true)] [string] $environment,
@@ -47,13 +47,13 @@ function InstallTopshelfService() {
   # service name is the name of the service plus the environment, seperated by a $
   # e.g. Service$Production
   
-  function InitialInstall() {
+  function Install-FirstTime() {
     $command = "& '$path\$executable' install -servicename:$name -instance:$environment $commandLineArguments"
     Write-Host " => Executing: $command"
     iex $command
   }
 
-  function UpdateServiceProperties() {
+  function Update-ServiceProperties() {
     # updates service properties using the registry
     # this could use sc.exe
 
@@ -69,7 +69,7 @@ function InstallTopshelfService() {
     Set-ItemProperty -path $registryPath -name ImagePath -value "$servicePath"
   }
 
-  InstallService "$name`$$environment" `
-    -install ${function:InitialInstall} `
-    -configure ${function:UpdateServiceProperties}
+  Install-Service "$name`$$environment" `
+    -install ${function:Install-FirstTime} `
+    -configure ${function:Update-ServiceProperties}
 }

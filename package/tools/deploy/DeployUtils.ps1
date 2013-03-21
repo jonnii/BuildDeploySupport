@@ -1,4 +1,4 @@
-function ReadXmlNode() {
+function Read-XmlNode() {
   param (
     [Parameter(Mandatory=$true)] [string] $filename,
     [Parameter(Mandatory=$true)] [string] $xpath
@@ -14,7 +14,7 @@ function ReadXmlNode() {
   return $node.innertext
 }
 
-function WriteXmlAttribute() {
+function Write-XmlAttribute() {
   param (
     [Parameter(Mandatory=$true)] [string] $filename, 
     [Parameter(Mandatory=$true)] [string] $xpath, 

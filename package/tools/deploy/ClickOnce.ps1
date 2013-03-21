@@ -1,4 +1,4 @@
-function PrepareClickOnce() {
+function Prepare-ClickOnce() {
   param(
     [Parameter(Mandatory=$true)] [string] $target,
     [Parameter(Mandatory=$true)] [string] $version,

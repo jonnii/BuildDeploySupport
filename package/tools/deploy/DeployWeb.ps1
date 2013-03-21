@@ -1,6 +1,6 @@
 Import-Module WebAdministration
 
-function InstallAppPool() {
+function Install-AppPool() {
   param (
     [Parameter(Mandatory=$true)]
     [string]    $appPoolName, 
@@ -45,7 +45,7 @@ function InstallAppPool() {
   Write-Host "Successfully configured App Pool"
 }
 
-function SetCredentials() {
+function Set-Credentials() {
   param (
     [Parameter(Mandatory=$true)] [string] $username,
     [Parameter(Mandatory=$true)] [string] $password
@@ -57,7 +57,7 @@ function SetCredentials() {
   Set-ItemProperty $appPool -Name processModel.identityType -value 3
 }
 
-function InstallWebSite() {
+function Install-WebSite() {
   param (
     [Parameter(Mandatory=$true)] [string] $webSiteName, 
     [Parameter(Mandatory=$true)] [string] $appPoolName, 
@@ -110,7 +110,7 @@ function InstallWebSite() {
   Write-Host "Successfully configured WebSite"
 }
 
-function SetWindowsAuthentication() {
+function Set-WindowsAuthentication() {
   param (
     [Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
   )
@@ -119,7 +119,7 @@ function SetWindowsAuthentication() {
   Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/windowsAuthentication -name enabled -value $enabled -location $site.name
 }
 
-function SetAnonymousAuthentication() {
+function Set-AnonymousAuthentication() {
   param (
     [Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
   )
