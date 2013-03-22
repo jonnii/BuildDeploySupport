@@ -1,12 +1,27 @@
 Import-Module WebAdministration
 
 function Install-AppPool() {
+  <#
+  .DESCRIPTION
+  Installs an AppPool.
+
+  .PARAMETER appPoolName
+  The name of the AppPool.
+
+  .PARAMETER appPoolFrameworkVersion
+  The version of the .NET Framework to use for this AppPool, defaults to .net v4.0.
+
+  .PARAMETER configure
+  A script block to call when configuring your AppPool.
+
+  .EXAMPLE
+  Install-AppPool "MyApplication-AppPool" -configure { ... configure ... }
+  #>
+
   [CmdLetBinding()]
   param (
-    [Parameter(Mandatory=$true)]
-    [string]    $appPoolName, 
-
-    [string]    $appPoolFrameworkVersion = 'v4.0', 
+    [Parameter(Mandatory=$true)] [string]    $appPoolName, 
+    [string]        $appPoolFrameworkVersion = 'v4.0', 
     [scriptblock]   $configure
   )
 
