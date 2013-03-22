@@ -4,6 +4,7 @@
 
   * update all function names to be more idiomatic
   * add cmdlet binding to all functions, output will use write-verbose
+  * [deployweb] add Get-WebPageContent function 
 
 ## 0.0.3.10
 

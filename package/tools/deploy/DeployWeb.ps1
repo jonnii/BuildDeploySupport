@@ -132,3 +132,22 @@ function Set-AnonymousAuthentication() {
   Write-Verbose " -> Anonymous authentication $enabled"
   Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/anonymousAuthentication -name enabled -value $enabled -location $site.name
 }
+
+function Get-WebPageContent() {
+  [CmdLetBinding()]
+  param (
+    [Parameter(Mandatory=$true)] [string] $url
+  )
+
+  Write-Verbose "Getting Url: $url"
+    
+  'create a web request'
+  $webRequest = [System.Net.WebRequest]::Create($url)
+  $webrequest.ContentLength = 0
+  $webRequest.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+  $webRequest.Method = "GET"
+
+  $response = $webRequest.GetResponse()
+  $reader = new-object System.IO.StreamReader($response.GetResponseStream())
+  $reader.ReadToEnd()
+}
