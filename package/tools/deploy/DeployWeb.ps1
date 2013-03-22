@@ -134,6 +134,15 @@ function Set-AnonymousAuthentication() {
 }
 
 function Get-WebPageContent() {
+  <#
+  .DESCRIPTION
+  Gets the content of a web page with a given url. Uses the default credentials for the current
+  user to make the request.  
+
+  .EXAMPLE
+  Get-WebPageContent "http://www.example.com"
+  #>
+
   [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)] [string] $url
