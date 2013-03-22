@@ -12,7 +12,7 @@ function Install-AppPool() {
   The version of the .NET Framework to use for this AppPool, defaults to .net v4.0.
 
   .PARAMETER configure
-  A script block to call when configuring your AppPool.
+  A script block to call when configuring the AppPool.
 
   .EXAMPLE
   Install-AppPool "MyApplication-AppPool" -configure { ... configure ... }
@@ -62,6 +62,14 @@ function Install-AppPool() {
 }
 
 function Set-Credentials() {
+  <#
+  .DESCRIPTION
+  Sets the credentails that an AppPool runs as
+
+  .EXAMPLE
+  Set-Credentails 'username' 'password'
+  #>
+
   [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)] [string] $username,
@@ -75,12 +83,32 @@ function Set-Credentials() {
 }
 
 function Install-WebSite() {
+  <#
+  .DESCRIPTION
+  Installs an WebSite.
+
+  .PARAMETER webSiteName
+  The name of the website.
+
+  .PARAMETER appPoolName
+  The name of the AppPool to use for this website.
+
+  .PARAMETER url
+  The url of this website, which will be used when setting up bindings.
+
+  .PARAMETER configure
+  A script block to call when configuring the website.
+
+  .EXAMPLE
+  Install-WebSite "MyWebSite" "MyWebSite-AppPool" "http://example.com" -configure { ... configure ... }
+  #>
+
   [CmdLetBinding()]
   param (
     [Parameter(Mandatory=$true)] [string] $webSiteName, 
     [Parameter(Mandatory=$true)] [string] $appPoolName, 
     [Parameter(Mandatory=$true)] [string] $url,
-    $configure
+    [scriptblock] $configure
   )
 
   # announce ourselves, and try to CD to IIS to make sure we have permissions
