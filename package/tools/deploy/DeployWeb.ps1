@@ -194,7 +194,7 @@ function Add-MimeType() {
 
   Write-Verbose "Adding MimeType: $extension -> $mimeType"
 
-  Add-WebConfigurationProperty //staticContent -name collection -value @{fileExtension=$extension; mimeType=$mimeType} -location $site.name
+  Set-WebConfigurationProperty //staticContent -name collection -value @{fileExtension=$extension; mimeType=$mimeType} -location $site.name
 }
 
 function Get-WebPageContent() {
