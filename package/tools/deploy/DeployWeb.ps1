@@ -176,6 +176,27 @@ function Set-AnonymousAuthentication() {
   Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/anonymousAuthentication -name enabled -value $enabled -location $site.name
 }
 
+function Add-MimeType() {
+  <#
+  .DESCRIPTION
+  Binds a mime type to an extension in the static content IIS settings. This is required if you want to
+  be able to serve custom content which is not served by IIS by default (for example web fonts with a .woff extension).
+
+  .EXAMPLE
+  Add-MimeType ".woff" "application/x-font-woff"
+  #>
+
+  [CmdLetBinding()]
+  param (
+    [Parameter(Mandatory=$true)] [string] $extension,
+    [Parameter(Mandatory=$true)] [string] $mimeType
+  )
+
+  Write-Verbose "Adding MimeType: $extension -> $mimeType"
+
+  Add-WebConfigurationProperty //staticContent -name collection -value @{fileExtension=$extension; mimeType=$mimeType} -location $site.name
+}
+
 function Get-WebPageContent() {
   <#
   .DESCRIPTION

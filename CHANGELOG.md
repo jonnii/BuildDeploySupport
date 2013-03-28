@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.0.1
+
+  * [deployweb] add function to add a mimetype with extension
+
 ## 0.1.0.0
 
   * update all function names to be more idiomatic
