@@ -176,6 +176,16 @@ function Set-AnonymousAuthentication() {
   Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/anonymousAuthentication -name enabled -value $enabled -location $site.name
 }
 
+function Set-BasicAuthentication() {
+  [CmdLetBinding()]
+  param (
+    [Parameter(Mandatory=$true)] [bool] $enabled = $TRUE
+  )
+ 
+  Write-Verbose " -> Basic authentication $enabled"
+  Set-WebConfigurationProperty -filter /system.WebServer/security/authentication/basicAuthentication -name enabled -value $enabled -location $site.name
+}
+
 function Add-MimeType() {
   <#
   .DESCRIPTION
