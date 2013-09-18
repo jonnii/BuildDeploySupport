@@ -7,16 +7,16 @@ solution and create a solution folder in your project so you can browse the scri
 
 You can then use the scripts to simplify your deployment!
 
-Please note that this is a work in progress. 
+Please note that this is a work in progress.
 
 How do I get it?
 ----------------
-    
+
     # to install
 	install-package BuildDeploySupport
 
     # to upgrade
-    update-package BuildDeploySupport 
+    update-package BuildDeploySupport
 
 How do I use it?
 ----------------
@@ -31,7 +31,7 @@ How do I use it?
     # install your website
     Install-WebSite $OctopusWebSiteName 'my-app-pool' 'www.yourdomain.com' {
     	Set-WindowsAuthentication $true
-    	Set-AnonymousAuthentication $false	
+    	Set-AnonymousAuthentication $false
     }
 
     . .\DeployService.ps1
@@ -57,7 +57,7 @@ How do I use it?
     Prepare-ClickOnce `
         '..\installers' `                   # output directory for the package
         '1.2.3.4' `                         # version of the installer
-        '..\bin\Release' `                  # directory to clickonce-ify                     
+        '..\bin\Release' `                  # directory to clickonce-ify
         'MyApplication.exe' `               # application executable
         'MyCompanyAwesomeApp' `             # your application identity name
         'My Awesome Application' `          # the display name for the application
@@ -65,3 +65,9 @@ How do I use it?
         'my company' `                      # the company publishing
         'http://mycompany.com/downloads/' ` # the download location for the installer
         'my-certificate-thumbprint'         # a certificate thumbprint to sign the package with (optional)
+
+Contributors
+------------
+
+ * @jonnii
+ * @jamescrowley

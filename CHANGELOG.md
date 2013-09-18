@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.0.2
+
+ * [jamescrowley] Fixed App Pool credentials not being set
+
 ## 0.1.0.1
 
   * [deployweb] add function to add a mimetype with extension
@@ -8,7 +12,7 @@
 
   * update all function names to be more idiomatic
   * add cmdlet binding to all functions, output will use write-verbose
-  * [deployweb] add Get-WebPageContent function 
+  * [deployweb] add Get-WebPageContent function
 
 ## 0.0.3.10
 
@@ -17,7 +21,7 @@
 
 ## 0.0.3.9
 
-  * First version of click once script 
+  * First version of click once script
 
 ## 0.0.3.3
 
