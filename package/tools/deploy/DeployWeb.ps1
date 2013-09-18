@@ -77,7 +77,7 @@ function Set-Credentials() {
   )
 
   Write-Verbose "  -> Applying app pool credentials $username"
-  Set-ItemProperty $appPool -Name processModel.username -value $username
+  Set-ItemProperty $appPool -Name processModel.userName -value $username
   Set-ItemProperty $appPool -Name processModel.password -value $password
   Set-ItemProperty $appPool -Name processModel.identityType -value 3
 }
