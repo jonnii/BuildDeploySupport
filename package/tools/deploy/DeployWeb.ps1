@@ -50,7 +50,7 @@ function Install-AppPool() {
   Set-ItemProperty    $appPool -Name processModel.loaduserprofile -value $FALSE
   Set-ItemProperty    $appPool -Name processModel.idleTimeOut -value '20:00:00'
 
-  Set-ItemProperty    $appPool -Name recycling.periodicRestart.time -value 0
+  Set-ItemProperty    $appPool -Name recycling.periodicRestart.time -value 0:0
   Clear-ItemProperty  $appPool -Name recycling.periodicRestart.schedule
   Set-ItemProperty    $appPool -Name recycling.periodicRestart.schedule -Value @{value="01:00:00"}
 
