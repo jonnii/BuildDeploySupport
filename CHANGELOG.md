@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.0.3
+
+ * [mbp] Fixed recycling.periodicRestart.time default value not being a timestamp value
+
 ## 0.1.0.2
 
  * [jamescrowley] Fixed App Pool credentials not being set
