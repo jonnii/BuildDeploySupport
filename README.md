@@ -38,7 +38,7 @@ How do I use it?
 
     # install a topshelf service
     Install-TopshelfService `
-        $OctopusOriginalPackageDirectoryPath `
+        $OctopusPackageDirectoryPath `
         $OctopusEnvironmentName `
         $OctopusPackageVersion `
         'startup.exe' `
