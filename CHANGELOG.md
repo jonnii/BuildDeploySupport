@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.0.4
+
+ * Add ability to skip starting a service on install so that it can be started later
+
 ## 0.1.0.3
 
  * [mbp] Fixed recycling.periodicRestart.time default value not being a timestamp value
