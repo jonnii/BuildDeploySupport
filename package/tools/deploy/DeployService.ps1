@@ -1,9 +1,10 @@
 function Install-Service() {
   [CmdLetBinding()]
   param (
-    [Parameter(Mandatory=$true)] [string]       $serviceName, 
-    [Parameter(Mandatory=$true)] [scriptblock]  $install, 
-    [Parameter(Mandatory=$true)] [scriptblock]  $configure
+    [Parameter(Mandatory=$true)] [string]      $serviceName,
+    [Parameter(Mandatory=$true)] [scriptblock] $install,
+    [Parameter(Mandatory=$true)] [scriptblock] $configure,
+    [boolean] $autoStart = $true
   )
 
   $service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
@@ -11,7 +12,7 @@ function Install-Service() {
   if ($service) {
     Write-Verbose "Stopping $serviceName"
     Stop-Service $serviceName
-    
+
     Write-Verbose " -> Configuring $serviceName"
     &$configure
   }
@@ -20,8 +21,12 @@ function Install-Service() {
     &$install
   }
 
-  Write-Verbose "Starting $serviceName"
-  Start-Service $serviceName
+  if ($autoStart) {
+    Write-Verbose "Starting $serviceName"
+    Start-Service $serviceName
+  } else {
+    Write-Verbose "Not auto starting $serviceName"
+  }
 }
 
 function Install-TopshelfService() {
@@ -31,7 +36,8 @@ function Install-TopshelfService() {
     [Parameter(Mandatory=$true)] [string] $version,
     [Parameter(Mandatory=$true)] [string] $executable,
     [Parameter(Mandatory=$true)] [string] $name,
-    [string] $commandLineArguments
+    [string] $commandLineArguments,
+    [boolean] $autoStart = $true
   )
 
   Write-Verbose " => Installing Topshelf Service"
@@ -47,7 +53,7 @@ function Install-TopshelfService() {
 
   # service name is the name of the service plus the environment, seperated by a $
   # e.g. Service$Production
-  
+
   function Install-FirstTime() {
     [CmdletBinding()] param()
 
@@ -75,5 +81,6 @@ function Install-TopshelfService() {
 
   Install-Service "$name`$$environment" `
     -install ${function:Install-FirstTime} `
-    -configure ${function:Update-ServiceProperties}
+    -configure ${function:Update-ServiceProperties} `
+    -autoStart $autoStart
 }
